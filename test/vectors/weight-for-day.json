@@ -1,0 +1,132 @@
+{
+  "suite": "weight-for-day",
+  "description": "The weight targets use on a day: the mean of the weight entries dated in the 7 calendar days ending on that day (day - 6 to day, both inclusive), rounded half-up to one decimal; with none in that window, the most recent earlier entry as logged; with none at all, null. Entries after the day are ignored. Dates are local \"YYYY-MM-DD\" strings. Ports compute the mean first, then round; the corpus avoids exact .x5 means, which binary floating point cannot hold.",
+  "generatedBy": "pocket-nutrition-sandbox — npm run vectors:build",
+  "cases": [
+    {
+      "id": "mean-of-window",
+      "why": "Three weigh-ins in the week ending on the day are averaged, (70.0 + 71.0 + 70.5) / 3 = 70.5, smoothing water swings.",
+      "input": {
+        "entries": [
+          {
+            "date": "2026-11-01",
+            "kg": 70
+          },
+          {
+            "date": "2026-11-03",
+            "kg": 71
+          },
+          {
+            "date": "2026-11-06",
+            "kg": 70.5
+          }
+        ],
+        "day": "2026-11-06"
+      },
+      "expected": 70.5
+    },
+    {
+      "id": "window-excludes-older-entries",
+      "why": "An entry eight days before is outside the 7-day window and does not drag the mean: only 70 kg counts.",
+      "input": {
+        "entries": [
+          {
+            "date": "2026-10-30",
+            "kg": 75
+          },
+          {
+            "date": "2026-11-06",
+            "kg": 70
+          }
+        ],
+        "day": "2026-11-06"
+      },
+      "expected": 70
+    },
+    {
+      "id": "no-entry-in-window-uses-latest-earlier",
+      "why": "Nobody weighs every week: with no entry in the window, the latest earlier weight (71 kg on 15 October) still applies.",
+      "input": {
+        "entries": [
+          {
+            "date": "2026-10-01",
+            "kg": 72
+          },
+          {
+            "date": "2026-10-15",
+            "kg": 71
+          }
+        ],
+        "day": "2026-11-06"
+      },
+      "expected": 71
+    },
+    {
+      "id": "future-entries-ignored",
+      "why": "A past day keeps the weight known then: an entry logged two days later must not change it.",
+      "input": {
+        "entries": [
+          {
+            "date": "2026-11-06",
+            "kg": 70
+          },
+          {
+            "date": "2026-11-08",
+            "kg": 80
+          }
+        ],
+        "day": "2026-11-06"
+      },
+      "expected": 70
+    },
+    {
+      "id": "no-entries-null",
+      "why": "With an empty log the caller falls back to the questionnaire weight, so this returns null rather than 0.",
+      "input": {
+        "entries": [],
+        "day": "2026-11-06"
+      },
+      "expected": null
+    },
+    {
+      "id": "window-start-across-month",
+      "why": "The window start crosses a month end: 2 March minus 6 days is 24 February, inclusive, so 80 kg counts and 23 February does not.",
+      "input": {
+        "entries": [
+          {
+            "date": "2026-02-23",
+            "kg": 90
+          },
+          {
+            "date": "2026-02-24",
+            "kg": 80
+          }
+        ],
+        "day": "2026-03-02"
+      },
+      "expected": 80
+    },
+    {
+      "id": "mean-rounded-one-decimal",
+      "why": "The mean (70 + 70.1 + 70.15) / 3 = 70.083 is rounded to one decimal, 70.1, so both apps show the same figure.",
+      "input": {
+        "entries": [
+          {
+            "date": "2026-11-04",
+            "kg": 70
+          },
+          {
+            "date": "2026-11-05",
+            "kg": 70.1
+          },
+          {
+            "date": "2026-11-06",
+            "kg": 70.15
+          }
+        ],
+        "day": "2026-11-06"
+      },
+      "expected": 70.1
+    }
+  ]
+}

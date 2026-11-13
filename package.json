@@ -1,0 +1,16 @@
+{
+  "name": "vault-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Read-only web viewer for a Pocket Nutrition vault. Decrypts in the browser; nothing readable ever reaches a server.",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test \"test/*.test.js\""
+  },
+  "dependencies": {
+    "esbuild": "0.28.2",
+    "libsodium-wrappers-sumo": "0.8.4"
+  }
+}

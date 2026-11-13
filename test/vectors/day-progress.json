@@ -1,0 +1,644 @@
+{
+  "suite": "day-progress",
+  "description": "Progress of a day toward its targets, one entry per requested key, in the requested order. A meal's nutrient is unknown when its key is absent, and an unknown is never counted as 0: knownMeals counts the meals that have it. total = the sum of known values rounded half-up (kcal and g whole, mg and µg one decimal), null when no meal knows it. With t = the unrounded known sum (0 when unknown): reference = min, else max; percent = round-half-up(t / reference x 100), null with no reference. status: no min and no max -> no-target; t < min -> under; max set and t > max -> over; else ok. aboveUpperLimit = upperLimit set and t > upperLimit. unit from the target, else from the key suffix (Kcal -> kcal, Ug -> µg, Mg -> mg, else g).",
+  "generatedBy": "pocket-nutrition-sandbox — npm run vectors:build",
+  "cases": [
+    {
+      "id": "typical-day",
+      "why": "Two meals, the second without fibre or iron: energy 1500.4/2000 = 75 %, protein 55.6 -> 56 g (93 %), fibre counts only the meal that knows it (1 of 2), sugars 55 g over a 50 g limit is 110 % and over, salt has no target, zinc unknown everywhere is null at 0 %.",
+      "input": {
+        "targets": [
+          {
+            "nutrientKey": "energyKcal",
+            "unit": "kcal",
+            "min": 2000,
+            "max": 2000,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "proteinG",
+            "unit": "g",
+            "min": 60,
+            "max": null,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "carbohydratesG",
+            "unit": "g",
+            "min": 250,
+            "max": 300,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "fiberG",
+            "unit": "g",
+            "min": 25,
+            "max": null,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "ironMg",
+            "unit": "mg",
+            "min": 11,
+            "max": null,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "sugarsG",
+            "unit": "g",
+            "min": null,
+            "max": 50,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "zincMg",
+            "unit": "mg",
+            "min": 11.7,
+            "max": null,
+            "upperLimit": 25
+          }
+        ],
+        "meals": [
+          {
+            "nutrients": {
+              "energyKcal": 800,
+              "proteinG": 30,
+              "carbohydratesG": 100,
+              "fiberG": 8,
+              "ironMg": 4.2,
+              "sugarsG": 20
+            }
+          },
+          {
+            "nutrients": {
+              "energyKcal": 700.4,
+              "proteinG": 25.6,
+              "carbohydratesG": 90,
+              "sugarsG": 35
+            }
+          }
+        ],
+        "keys": [
+          "energyKcal",
+          "proteinG",
+          "carbohydratesG",
+          "fiberG",
+          "ironMg",
+          "sugarsG",
+          "sodiumMg",
+          "zincMg"
+        ]
+      },
+      "expected": [
+        {
+          "nutrientKey": "energyKcal",
+          "unit": "kcal",
+          "total": 1500,
+          "knownMeals": 2,
+          "totalMeals": 2,
+          "percent": 75,
+          "status": "under",
+          "aboveUpperLimit": false
+        },
+        {
+          "nutrientKey": "proteinG",
+          "unit": "g",
+          "total": 56,
+          "knownMeals": 2,
+          "totalMeals": 2,
+          "percent": 93,
+          "status": "under",
+          "aboveUpperLimit": false
+        },
+        {
+          "nutrientKey": "carbohydratesG",
+          "unit": "g",
+          "total": 190,
+          "knownMeals": 2,
+          "totalMeals": 2,
+          "percent": 76,
+          "status": "under",
+          "aboveUpperLimit": false
+        },
+        {
+          "nutrientKey": "fiberG",
+          "unit": "g",
+          "total": 8,
+          "knownMeals": 1,
+          "totalMeals": 2,
+          "percent": 32,
+          "status": "under",
+          "aboveUpperLimit": false
+        },
+        {
+          "nutrientKey": "ironMg",
+          "unit": "mg",
+          "total": 4.2,
+          "knownMeals": 1,
+          "totalMeals": 2,
+          "percent": 38,
+          "status": "under",
+          "aboveUpperLimit": false
+        },
+        {
+          "nutrientKey": "sugarsG",
+          "unit": "g",
+          "total": 55,
+          "knownMeals": 2,
+          "totalMeals": 2,
+          "percent": 110,
+          "status": "over",
+          "aboveUpperLimit": false
+        },
+        {
+          "nutrientKey": "sodiumMg",
+          "unit": "mg",
+          "total": null,
+          "knownMeals": 0,
+          "totalMeals": 2,
+          "percent": null,
+          "status": "no-target",
+          "aboveUpperLimit": false
+        },
+        {
+          "nutrientKey": "zincMg",
+          "unit": "mg",
+          "total": null,
+          "knownMeals": 0,
+          "totalMeals": 2,
+          "percent": 0,
+          "status": "under",
+          "aboveUpperLimit": false
+        }
+      ]
+    },
+    {
+      "id": "energy-hit-exactly-ok",
+      "why": "Energy is a point target (min = max): exactly 2000 kcal is ok at 100 %.",
+      "input": {
+        "targets": [
+          {
+            "nutrientKey": "energyKcal",
+            "unit": "kcal",
+            "min": 2000,
+            "max": 2000,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "proteinG",
+            "unit": "g",
+            "min": 60,
+            "max": null,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "carbohydratesG",
+            "unit": "g",
+            "min": 250,
+            "max": 300,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "fiberG",
+            "unit": "g",
+            "min": 25,
+            "max": null,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "ironMg",
+            "unit": "mg",
+            "min": 11,
+            "max": null,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "sugarsG",
+            "unit": "g",
+            "min": null,
+            "max": 50,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "zincMg",
+            "unit": "mg",
+            "min": 11.7,
+            "max": null,
+            "upperLimit": 25
+          }
+        ],
+        "meals": [
+          {
+            "nutrients": {
+              "energyKcal": 2000
+            }
+          }
+        ],
+        "keys": [
+          "energyKcal"
+        ]
+      },
+      "expected": [
+        {
+          "nutrientKey": "energyKcal",
+          "unit": "kcal",
+          "total": 2000,
+          "knownMeals": 1,
+          "totalMeals": 1,
+          "percent": 100,
+          "status": "ok",
+          "aboveUpperLimit": false
+        }
+      ]
+    },
+    {
+      "id": "energy-above-point-over",
+      "why": "Above a point target is over (105 %); the ring keeps filling in a muted colour, never an alarming red.",
+      "input": {
+        "targets": [
+          {
+            "nutrientKey": "energyKcal",
+            "unit": "kcal",
+            "min": 2000,
+            "max": 2000,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "proteinG",
+            "unit": "g",
+            "min": 60,
+            "max": null,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "carbohydratesG",
+            "unit": "g",
+            "min": 250,
+            "max": 300,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "fiberG",
+            "unit": "g",
+            "min": 25,
+            "max": null,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "ironMg",
+            "unit": "mg",
+            "min": 11,
+            "max": null,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "sugarsG",
+            "unit": "g",
+            "min": null,
+            "max": 50,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "zincMg",
+            "unit": "mg",
+            "min": 11.7,
+            "max": null,
+            "upperLimit": 25
+          }
+        ],
+        "meals": [
+          {
+            "nutrients": {
+              "energyKcal": 2100
+            }
+          }
+        ],
+        "keys": [
+          "energyKcal"
+        ]
+      },
+      "expected": [
+        {
+          "nutrientKey": "energyKcal",
+          "unit": "kcal",
+          "total": 2100,
+          "knownMeals": 1,
+          "totalMeals": 1,
+          "percent": 105,
+          "status": "over",
+          "aboveUpperLimit": false
+        }
+      ]
+    },
+    {
+      "id": "range-inside-ok",
+      "why": "Carbohydrates at 260 g sit inside the 250-300 g range: ok, at 104 % of the lower bound so the ring reads full.",
+      "input": {
+        "targets": [
+          {
+            "nutrientKey": "energyKcal",
+            "unit": "kcal",
+            "min": 2000,
+            "max": 2000,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "proteinG",
+            "unit": "g",
+            "min": 60,
+            "max": null,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "carbohydratesG",
+            "unit": "g",
+            "min": 250,
+            "max": 300,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "fiberG",
+            "unit": "g",
+            "min": 25,
+            "max": null,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "ironMg",
+            "unit": "mg",
+            "min": 11,
+            "max": null,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "sugarsG",
+            "unit": "g",
+            "min": null,
+            "max": 50,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "zincMg",
+            "unit": "mg",
+            "min": 11.7,
+            "max": null,
+            "upperLimit": 25
+          }
+        ],
+        "meals": [
+          {
+            "nutrients": {
+              "carbohydratesG": 260
+            }
+          }
+        ],
+        "keys": [
+          "carbohydratesG"
+        ]
+      },
+      "expected": [
+        {
+          "nutrientKey": "carbohydratesG",
+          "unit": "g",
+          "total": 260,
+          "knownMeals": 1,
+          "totalMeals": 1,
+          "percent": 104,
+          "status": "ok",
+          "aboveUpperLimit": false
+        }
+      ]
+    },
+    {
+      "id": "goal-never-over-but-upper-limit-flagged",
+      "why": "A goal has no max, so 26 mg of zinc is ok at 222 %, yet it is above EFSA's 25 mg upper limit and must be flagged.",
+      "input": {
+        "targets": [
+          {
+            "nutrientKey": "energyKcal",
+            "unit": "kcal",
+            "min": 2000,
+            "max": 2000,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "proteinG",
+            "unit": "g",
+            "min": 60,
+            "max": null,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "carbohydratesG",
+            "unit": "g",
+            "min": 250,
+            "max": 300,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "fiberG",
+            "unit": "g",
+            "min": 25,
+            "max": null,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "ironMg",
+            "unit": "mg",
+            "min": 11,
+            "max": null,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "sugarsG",
+            "unit": "g",
+            "min": null,
+            "max": 50,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "zincMg",
+            "unit": "mg",
+            "min": 11.7,
+            "max": null,
+            "upperLimit": 25
+          }
+        ],
+        "meals": [
+          {
+            "nutrients": {
+              "zincMg": 26
+            }
+          }
+        ],
+        "keys": [
+          "zincMg"
+        ]
+      },
+      "expected": [
+        {
+          "nutrientKey": "zincMg",
+          "unit": "mg",
+          "total": 26,
+          "knownMeals": 1,
+          "totalMeals": 1,
+          "percent": 222,
+          "status": "ok",
+          "aboveUpperLimit": true
+        }
+      ]
+    },
+    {
+      "id": "limit-below-is-ok",
+      "why": "A limit is never under: 30 g of sugars against a 50 g limit is ok at 60 %.",
+      "input": {
+        "targets": [
+          {
+            "nutrientKey": "energyKcal",
+            "unit": "kcal",
+            "min": 2000,
+            "max": 2000,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "proteinG",
+            "unit": "g",
+            "min": 60,
+            "max": null,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "carbohydratesG",
+            "unit": "g",
+            "min": 250,
+            "max": 300,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "fiberG",
+            "unit": "g",
+            "min": 25,
+            "max": null,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "ironMg",
+            "unit": "mg",
+            "min": 11,
+            "max": null,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "sugarsG",
+            "unit": "g",
+            "min": null,
+            "max": 50,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "zincMg",
+            "unit": "mg",
+            "min": 11.7,
+            "max": null,
+            "upperLimit": 25
+          }
+        ],
+        "meals": [
+          {
+            "nutrients": {
+              "sugarsG": 30
+            }
+          }
+        ],
+        "keys": [
+          "sugarsG"
+        ]
+      },
+      "expected": [
+        {
+          "nutrientKey": "sugarsG",
+          "unit": "g",
+          "total": 30,
+          "knownMeals": 1,
+          "totalMeals": 1,
+          "percent": 60,
+          "status": "ok",
+          "aboveUpperLimit": false
+        }
+      ]
+    },
+    {
+      "id": "empty-day",
+      "why": "A day with no meal yet: no total, zero meals, 0 % and under, so the ring is drawn empty rather than hidden.",
+      "input": {
+        "targets": [
+          {
+            "nutrientKey": "energyKcal",
+            "unit": "kcal",
+            "min": 2000,
+            "max": 2000,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "proteinG",
+            "unit": "g",
+            "min": 60,
+            "max": null,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "carbohydratesG",
+            "unit": "g",
+            "min": 250,
+            "max": 300,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "fiberG",
+            "unit": "g",
+            "min": 25,
+            "max": null,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "ironMg",
+            "unit": "mg",
+            "min": 11,
+            "max": null,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "sugarsG",
+            "unit": "g",
+            "min": null,
+            "max": 50,
+            "upperLimit": null
+          },
+          {
+            "nutrientKey": "zincMg",
+            "unit": "mg",
+            "min": 11.7,
+            "max": null,
+            "upperLimit": 25
+          }
+        ],
+        "meals": [],
+        "keys": [
+          "energyKcal"
+        ]
+      },
+      "expected": [
+        {
+          "nutrientKey": "energyKcal",
+          "unit": "kcal",
+          "total": null,
+          "knownMeals": 0,
+          "totalMeals": 0,
+          "percent": 0,
+          "status": "under",
+          "aboveUpperLimit": false
+        }
+      ]
+    }
+  ]
+}

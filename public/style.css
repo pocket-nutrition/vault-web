@@ -1,0 +1,127 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later */
+
+:root {
+  --paper: #faf7f0;
+  --cream: #f1ead9;
+  --card: #ffffff;
+  --ink: #1e2b22;
+  --ink-soft: #4a5a4e;
+  --line: rgb(30 43 34 / 0.14);
+  --leaf: #3e7a4e;
+  --leaf-deep: #1f3d29;
+  --bad: #b0402f;
+  --bad-soft: #f4ddd7;
+  --radius: 14px;
+  /* Progress past 100 % is drawn in this muted tone: never red, never a warning. */
+  --over: rgb(74 90 78 / 0.45);
+  --track: rgb(30 43 34 / 0.08);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+main { max-width: 720px; margin: 0 auto; padding: 24px 16px 64px; }
+
+h1 { font-size: 1.6rem; margin: 0 0 4px; color: var(--leaf-deep); }
+h2 { font-size: 0.85rem; margin: 32px 0 8px; color: var(--ink-soft); letter-spacing: 0.02em; }
+h2 .day-title::first-letter { text-transform: uppercase; }
+p { margin: 0 0 12px; }
+.soft { color: var(--ink-soft); font-size: 0.9rem; }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+
+form { display: grid; gap: 12px; }
+label { display: grid; gap: 4px; font-size: 0.9rem; color: var(--ink-soft); }
+input {
+  font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line);
+  border-radius: 10px; padding: 12px; width: 100%;
+}
+input:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid var(--leaf); outline-offset: 2px; }
+
+button, .button {
+  font: inherit; font-weight: 600; cursor: pointer; text-decoration: none; text-align: center;
+  background: var(--leaf); color: #fff; border: 0; border-radius: 12px; padding: 12px 16px;
+}
+button:disabled { opacity: 0.6; cursor: progress; }
+button.quiet, .button.quiet { background: transparent; color: var(--ink-soft); border: 1px solid var(--line); font-weight: 500; }
+
+.notice { background: var(--cream); border-radius: 10px; padding: 12px; font-size: 0.9rem; }
+.notice.error { background: var(--bad-soft); color: var(--bad); }
+
+header.bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+header.bar .actions { display: flex; gap: 8px; }
+
+nav.tabs { display: flex; gap: 8px; margin: 16px 0 0; }
+nav.tabs button { background: transparent; color: var(--ink-soft); border: 1px solid var(--line); font-weight: 500; }
+nav.tabs button[aria-current="page"] { background: var(--leaf-deep); color: #fff; border-color: var(--leaf-deep); }
+
+.day-total { font-weight: 400; color: var(--ink-soft); }
+.meal-time { font-size: 0.85rem; color: var(--ink-soft); }
+ul.items { list-style: none; margin: 8px 0; padding: 0; }
+ul.items li { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; border-top: 1px solid var(--line); }
+ul.items li:first-child { border-top: 0; }
+ul.items .grams { color: var(--ink-soft); white-space: nowrap; }
+.macros { font-size: 0.85rem; color: var(--ink-soft); margin: 0; }
+blockquote { margin: 0 0 8px; font-style: italic; }
+
+h3 { font-size: 1rem; margin: 0 0 8px; color: var(--leaf-deep); }
+h4 { font-size: 0.85rem; margin: 16px 0 4px; color: var(--ink-soft); }
+select { font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 6px 8px; max-width: 100%; }
+select:focus-visible { outline: 3px solid var(--leaf); outline-offset: 2px; }
+a { color: var(--leaf-deep); }
+button.link { background: none; border: 0; padding: 0; color: var(--leaf-deep); font-weight: 500; text-decoration: underline; }
+button.small { padding: 4px 12px; }
+nav.tabs.small { margin: 0 0 12px; }
+nav.tabs.small button { padding: 6px 12px; font-size: 0.85rem; }
+
+/* Daily-targets rings on a day header. */
+.rings {
+  display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: flex-start; width: 100%;
+  margin: 0 0 10px; padding: 10px 12px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+  color: var(--ink); font-weight: 400; text-align: left; cursor: default;
+}
+button.rings { cursor: pointer; transition: border-color 150ms ease-out, box-shadow 150ms ease-out; }
+button.rings:hover { border-color: var(--leaf); box-shadow: 0 1px 6px rgb(30 43 34 / 0.08); }
+.ring-item { display: grid; grid-template-columns: 36px auto; column-gap: 8px; align-items: center; font-size: 0.8rem; line-height: 1.25; }
+.ring-item .ring { grid-row: span 4; }
+.ring-label { color: var(--ink); font-weight: 600; }
+.ring-value, .coverage { color: var(--ink-soft); }
+.limit-marker {
+  justify-self: start; font-size: 0.7rem; color: var(--ink-soft); border: 1px solid var(--line); border-radius: 6px; padding: 0 5px;
+}
+.ring { width: 36px; height: 36px; }
+.ring circle { fill: none; stroke-width: 4; stroke-linecap: round; }
+.ring .ring-track { stroke: var(--track); }
+.ring .ring-fill { stroke: var(--leaf); }
+.ring .ring-over { stroke: var(--over); }
+.ring.partial .ring-fill { stroke-opacity: 0.5; }
+.chip { align-self: center; font-size: 0.8rem; color: var(--ink-soft); background: var(--cream); border-radius: 999px; padding: 4px 10px; }
+
+/* Day detail, week and explanation lists. */
+ul.detail, ul.choices { list-style: none; margin: 0; padding: 0; }
+ul.choices { padding-left: 1.1em; list-style: disc; font-size: 0.9rem; }
+ul.choices li { margin-bottom: 4px; }
+.detail-row { padding: 8px 0; border-top: 1px solid var(--line); }
+.detail-row:first-child { border-top: 0; }
+.detail-row p { margin: 2px 0 0; }
+.detail-head { display: flex; justify-content: space-between; gap: 12px; }
+.detail-total { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.section-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.section-head h3 { margin: 0; }
+.section-head .actions { display: flex; gap: 6px; }
+.sources a { overflow-wrap: anywhere; }
+.banner { border-left: 4px solid var(--leaf); }
+
+/* Trend chart. */
+.trend-chart { display: block; width: 100%; height: 160px; background: var(--paper); border-radius: 10px; }
+.trend-chart .bar { fill: var(--leaf); fill-opacity: 0.75; }
+.trend-chart .target-line { fill: none; stroke: var(--leaf-deep); stroke-width: 2; stroke-dasharray: 6 4; vector-effect: non-scaling-stroke; }
+.chart-axis { display: flex; justify-content: space-between; margin: 4px 0 0; font-size: 0.8rem; }
+
+@media (max-width: 480px) { main { padding-top: 16px; } }

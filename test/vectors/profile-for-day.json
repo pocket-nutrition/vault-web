@@ -1,0 +1,252 @@
+{
+  "suite": "profile-for-day",
+  "description": "The profile in force on a day, ready for daily-targets: the version with the latest effectiveFrom on or before the day (among equal dates, the last in the list); ageYears = the day's calendar year minus birthYear; weightKg = weight-for-day of the weight log when it is not null, else the version's own weightKg. Optional fields (trimester, lactation, postmenopausal, phytateMgPerDay) are copied only when the version has them. Null before the first version.",
+  "generatedBy": "pocket-nutrition-sandbox — npm run vectors:build",
+  "cases": [
+    {
+      "id": "before-first-version-null",
+      "why": "A day logged before the questionnaire was filled gets no target: none is invented for the past.",
+      "input": {
+        "versions": [
+          {
+            "effectiveFrom": "2026-11-01",
+            "birthYear": 1996,
+            "basis": "male",
+            "situation": "none",
+            "pal": 1.6,
+            "weightKg": 75
+          },
+          {
+            "effectiveFrom": "2026-11-10",
+            "birthYear": 1996,
+            "basis": "male",
+            "situation": "none",
+            "pal": 1.4,
+            "weightKg": 74
+          }
+        ],
+        "weights": [],
+        "day": "2026-10-31"
+      },
+      "expected": null
+    },
+    {
+      "id": "first-version-from-its-day",
+      "why": "The version applies from its own day: age 2026 - 1996 = 30, questionnaire weight 75 with an empty log.",
+      "input": {
+        "versions": [
+          {
+            "effectiveFrom": "2026-11-01",
+            "birthYear": 1996,
+            "basis": "male",
+            "situation": "none",
+            "pal": 1.6,
+            "weightKg": 75
+          },
+          {
+            "effectiveFrom": "2026-11-10",
+            "birthYear": 1996,
+            "basis": "male",
+            "situation": "none",
+            "pal": 1.4,
+            "weightKg": 74
+          }
+        ],
+        "weights": [],
+        "day": "2026-11-01"
+      },
+      "expected": {
+        "ageYears": 30,
+        "basis": "male",
+        "situation": "none",
+        "pal": 1.6,
+        "weightKg": 75
+      }
+    },
+    {
+      "id": "between-versions-keeps-older",
+      "why": "The day before the second version still uses the first: editing the profile never rewrites earlier days.",
+      "input": {
+        "versions": [
+          {
+            "effectiveFrom": "2026-11-01",
+            "birthYear": 1996,
+            "basis": "male",
+            "situation": "none",
+            "pal": 1.6,
+            "weightKg": 75
+          },
+          {
+            "effectiveFrom": "2026-11-10",
+            "birthYear": 1996,
+            "basis": "male",
+            "situation": "none",
+            "pal": 1.4,
+            "weightKg": 74
+          }
+        ],
+        "weights": [],
+        "day": "2026-11-09"
+      },
+      "expected": {
+        "ageYears": 30,
+        "basis": "male",
+        "situation": "none",
+        "pal": 1.6,
+        "weightKg": 75
+      }
+    },
+    {
+      "id": "new-version-from-its-day",
+      "why": "From the second version's day on, its activity level (1.4) and weight (74) apply.",
+      "input": {
+        "versions": [
+          {
+            "effectiveFrom": "2026-11-01",
+            "birthYear": 1996,
+            "basis": "male",
+            "situation": "none",
+            "pal": 1.6,
+            "weightKg": 75
+          },
+          {
+            "effectiveFrom": "2026-11-10",
+            "birthYear": 1996,
+            "basis": "male",
+            "situation": "none",
+            "pal": 1.4,
+            "weightKg": 74
+          }
+        ],
+        "weights": [],
+        "day": "2026-11-10"
+      },
+      "expected": {
+        "ageYears": 30,
+        "basis": "male",
+        "situation": "none",
+        "pal": 1.4,
+        "weightKg": 74
+      }
+    },
+    {
+      "id": "weight-log-beats-questionnaire",
+      "why": "Targets follow the weight log: a 73 kg entry in the week replaces the 75 kg typed in the questionnaire.",
+      "input": {
+        "versions": [
+          {
+            "effectiveFrom": "2026-11-01",
+            "birthYear": 1996,
+            "basis": "male",
+            "situation": "none",
+            "pal": 1.6,
+            "weightKg": 75
+          }
+        ],
+        "weights": [
+          {
+            "date": "2026-11-05",
+            "kg": 73
+          }
+        ],
+        "day": "2026-11-06"
+      },
+      "expected": {
+        "ageYears": 30,
+        "basis": "male",
+        "situation": "none",
+        "pal": 1.6,
+        "weightKg": 73
+      }
+    },
+    {
+      "id": "age-on-new-year",
+      "why": "Age is the calendar year minus the birth year, so it moves on 1 January: 2027 - 1996 = 31.",
+      "input": {
+        "versions": [
+          {
+            "effectiveFrom": "2026-11-01",
+            "birthYear": 1996,
+            "basis": "male",
+            "situation": "none",
+            "pal": 1.6,
+            "weightKg": 75
+          }
+        ],
+        "weights": [],
+        "day": "2027-01-01"
+      },
+      "expected": {
+        "ageYears": 31,
+        "basis": "male",
+        "situation": "none",
+        "pal": 1.6,
+        "weightKg": 75
+      }
+    },
+    {
+      "id": "same-day-last-wins",
+      "why": "Two saves on the same day: the last one in the list is the one in force, so a correction made minutes later counts.",
+      "input": {
+        "versions": [
+          {
+            "effectiveFrom": "2026-11-01",
+            "birthYear": 1996,
+            "basis": "male",
+            "situation": "none",
+            "pal": 1.6,
+            "weightKg": 75
+          },
+          {
+            "effectiveFrom": "2026-11-01",
+            "birthYear": 1996,
+            "basis": "male",
+            "situation": "none",
+            "pal": 1.8,
+            "weightKg": 75
+          }
+        ],
+        "weights": [],
+        "day": "2026-11-02"
+      },
+      "expected": {
+        "ageYears": 30,
+        "basis": "male",
+        "situation": "none",
+        "pal": 1.8,
+        "weightKg": 75
+      }
+    },
+    {
+      "id": "optional-fields-copied",
+      "why": "Pregnancy details travel with the version: trimester and postmenopausal flags reach daily-targets unchanged.",
+      "input": {
+        "versions": [
+          {
+            "effectiveFrom": "2026-11-01",
+            "birthYear": 1994,
+            "basis": "female",
+            "situation": "pregnant",
+            "trimester": 2,
+            "postmenopausal": false,
+            "pal": 1.6,
+            "weightKg": 65,
+            "phytateMgPerDay": 900
+          }
+        ],
+        "weights": [],
+        "day": "2026-11-06"
+      },
+      "expected": {
+        "ageYears": 32,
+        "basis": "female",
+        "situation": "pregnant",
+        "trimester": 2,
+        "postmenopausal": false,
+        "pal": 1.6,
+        "weightKg": 65,
+        "phytateMgPerDay": 900
+      }
+    }
+  ]
+}

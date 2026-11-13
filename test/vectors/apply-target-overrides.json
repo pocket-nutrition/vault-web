@@ -1,0 +1,646 @@
+{
+  "suite": "apply-target-overrides",
+  "description": "User overrides on top of the computed targets. The override version in force on the day is the latest effectiveFrom on or before it (last in the list among equal dates); each version is a complete snapshot, so a version with no values resets everything to the computed targets. An override replaces min and max and keeps upperLimit and sources; an override on a key with no computed target adds one with unit from the key suffix (Kcal -> kcal, Ug -> µg, Mg -> mg, else g), upperLimit null and no source. Every target carries overridden; sorted by nutrientKey.",
+  "generatedBy": "pocket-nutrition-sandbox — npm run vectors:build",
+  "cases": [
+    {
+      "id": "no-override",
+      "why": "Without overrides every computed target passes through unchanged, flagged overridden: false.",
+      "input": {
+        "targets": [
+          {
+            "nutrientKey": "energyKcal",
+            "unit": "kcal",
+            "min": 2588,
+            "max": 2588,
+            "upperLimit": null,
+            "sources": [
+              "efsa/energy"
+            ]
+          },
+          {
+            "nutrientKey": "proteinG",
+            "unit": "g",
+            "min": 62,
+            "max": null,
+            "upperLimit": null,
+            "sources": [
+              "efsa/protein"
+            ]
+          },
+          {
+            "nutrientKey": "zincMg",
+            "unit": "mg",
+            "min": 11.7,
+            "max": null,
+            "upperLimit": 25,
+            "sources": [
+              "efsa/zinc",
+              "efsa/zinc-ul"
+            ]
+          }
+        ],
+        "versions": [],
+        "day": "2026-11-06"
+      },
+      "expected": [
+        {
+          "nutrientKey": "energyKcal",
+          "unit": "kcal",
+          "min": 2588,
+          "max": 2588,
+          "upperLimit": null,
+          "sources": [
+            "efsa/energy"
+          ],
+          "overridden": false
+        },
+        {
+          "nutrientKey": "proteinG",
+          "unit": "g",
+          "min": 62,
+          "max": null,
+          "upperLimit": null,
+          "sources": [
+            "efsa/protein"
+          ],
+          "overridden": false
+        },
+        {
+          "nutrientKey": "zincMg",
+          "unit": "mg",
+          "min": 11.7,
+          "max": null,
+          "upperLimit": 25,
+          "sources": [
+            "efsa/zinc",
+            "efsa/zinc-ul"
+          ],
+          "overridden": false
+        }
+      ]
+    },
+    {
+      "id": "override-energy",
+      "why": "A user who wants to lose weight sets 2200 kcal: min and max change, the EFSA source is kept for the explanation screen.",
+      "input": {
+        "targets": [
+          {
+            "nutrientKey": "energyKcal",
+            "unit": "kcal",
+            "min": 2588,
+            "max": 2588,
+            "upperLimit": null,
+            "sources": [
+              "efsa/energy"
+            ]
+          },
+          {
+            "nutrientKey": "proteinG",
+            "unit": "g",
+            "min": 62,
+            "max": null,
+            "upperLimit": null,
+            "sources": [
+              "efsa/protein"
+            ]
+          },
+          {
+            "nutrientKey": "zincMg",
+            "unit": "mg",
+            "min": 11.7,
+            "max": null,
+            "upperLimit": 25,
+            "sources": [
+              "efsa/zinc",
+              "efsa/zinc-ul"
+            ]
+          }
+        ],
+        "versions": [
+          {
+            "effectiveFrom": "2026-11-01",
+            "values": {
+              "energyKcal": {
+                "min": 2200,
+                "max": 2200
+              }
+            }
+          }
+        ],
+        "day": "2026-11-06"
+      },
+      "expected": [
+        {
+          "nutrientKey": "energyKcal",
+          "unit": "kcal",
+          "min": 2200,
+          "max": 2200,
+          "upperLimit": null,
+          "sources": [
+            "efsa/energy"
+          ],
+          "overridden": true
+        },
+        {
+          "nutrientKey": "proteinG",
+          "unit": "g",
+          "min": 62,
+          "max": null,
+          "upperLimit": null,
+          "sources": [
+            "efsa/protein"
+          ],
+          "overridden": false
+        },
+        {
+          "nutrientKey": "zincMg",
+          "unit": "mg",
+          "min": 11.7,
+          "max": null,
+          "upperLimit": 25,
+          "sources": [
+            "efsa/zinc",
+            "efsa/zinc-ul"
+          ],
+          "overridden": false
+        }
+      ]
+    },
+    {
+      "id": "override-keeps-upper-limit",
+      "why": "Raising the zinc goal to 15 mg never removes EFSA's 25 mg safety ceiling: the upper limit is not the user's to override.",
+      "input": {
+        "targets": [
+          {
+            "nutrientKey": "energyKcal",
+            "unit": "kcal",
+            "min": 2588,
+            "max": 2588,
+            "upperLimit": null,
+            "sources": [
+              "efsa/energy"
+            ]
+          },
+          {
+            "nutrientKey": "proteinG",
+            "unit": "g",
+            "min": 62,
+            "max": null,
+            "upperLimit": null,
+            "sources": [
+              "efsa/protein"
+            ]
+          },
+          {
+            "nutrientKey": "zincMg",
+            "unit": "mg",
+            "min": 11.7,
+            "max": null,
+            "upperLimit": 25,
+            "sources": [
+              "efsa/zinc",
+              "efsa/zinc-ul"
+            ]
+          }
+        ],
+        "versions": [
+          {
+            "effectiveFrom": "2026-11-01",
+            "values": {
+              "zincMg": {
+                "min": 15,
+                "max": null
+              }
+            }
+          }
+        ],
+        "day": "2026-11-06"
+      },
+      "expected": [
+        {
+          "nutrientKey": "energyKcal",
+          "unit": "kcal",
+          "min": 2588,
+          "max": 2588,
+          "upperLimit": null,
+          "sources": [
+            "efsa/energy"
+          ],
+          "overridden": false
+        },
+        {
+          "nutrientKey": "proteinG",
+          "unit": "g",
+          "min": 62,
+          "max": null,
+          "upperLimit": null,
+          "sources": [
+            "efsa/protein"
+          ],
+          "overridden": false
+        },
+        {
+          "nutrientKey": "zincMg",
+          "unit": "mg",
+          "min": 15,
+          "max": null,
+          "upperLimit": 25,
+          "sources": [
+            "efsa/zinc",
+            "efsa/zinc-ul"
+          ],
+          "overridden": true
+        }
+      ]
+    },
+    {
+      "id": "override-adds-a-limit",
+      "why": "Sugars have no default target; a user who sets a 50 g limit gets a new limit-only target, with no EFSA source to cite.",
+      "input": {
+        "targets": [
+          {
+            "nutrientKey": "energyKcal",
+            "unit": "kcal",
+            "min": 2588,
+            "max": 2588,
+            "upperLimit": null,
+            "sources": [
+              "efsa/energy"
+            ]
+          },
+          {
+            "nutrientKey": "proteinG",
+            "unit": "g",
+            "min": 62,
+            "max": null,
+            "upperLimit": null,
+            "sources": [
+              "efsa/protein"
+            ]
+          },
+          {
+            "nutrientKey": "zincMg",
+            "unit": "mg",
+            "min": 11.7,
+            "max": null,
+            "upperLimit": 25,
+            "sources": [
+              "efsa/zinc",
+              "efsa/zinc-ul"
+            ]
+          }
+        ],
+        "versions": [
+          {
+            "effectiveFrom": "2026-11-01",
+            "values": {
+              "sugarsG": {
+                "min": null,
+                "max": 50
+              }
+            }
+          }
+        ],
+        "day": "2026-11-06"
+      },
+      "expected": [
+        {
+          "nutrientKey": "energyKcal",
+          "unit": "kcal",
+          "min": 2588,
+          "max": 2588,
+          "upperLimit": null,
+          "sources": [
+            "efsa/energy"
+          ],
+          "overridden": false
+        },
+        {
+          "nutrientKey": "proteinG",
+          "unit": "g",
+          "min": 62,
+          "max": null,
+          "upperLimit": null,
+          "sources": [
+            "efsa/protein"
+          ],
+          "overridden": false
+        },
+        {
+          "nutrientKey": "sugarsG",
+          "unit": "g",
+          "min": null,
+          "max": 50,
+          "upperLimit": null,
+          "sources": [],
+          "overridden": true
+        },
+        {
+          "nutrientKey": "zincMg",
+          "unit": "mg",
+          "min": 11.7,
+          "max": null,
+          "upperLimit": 25,
+          "sources": [
+            "efsa/zinc",
+            "efsa/zinc-ul"
+          ],
+          "overridden": false
+        }
+      ]
+    },
+    {
+      "id": "older-override-before-change",
+      "why": "Overrides are versioned like the profile: on 5 November the 2200 kcal set on the 1st still applies.",
+      "input": {
+        "targets": [
+          {
+            "nutrientKey": "energyKcal",
+            "unit": "kcal",
+            "min": 2588,
+            "max": 2588,
+            "upperLimit": null,
+            "sources": [
+              "efsa/energy"
+            ]
+          },
+          {
+            "nutrientKey": "proteinG",
+            "unit": "g",
+            "min": 62,
+            "max": null,
+            "upperLimit": null,
+            "sources": [
+              "efsa/protein"
+            ]
+          },
+          {
+            "nutrientKey": "zincMg",
+            "unit": "mg",
+            "min": 11.7,
+            "max": null,
+            "upperLimit": 25,
+            "sources": [
+              "efsa/zinc",
+              "efsa/zinc-ul"
+            ]
+          }
+        ],
+        "versions": [
+          {
+            "effectiveFrom": "2026-11-01",
+            "values": {
+              "energyKcal": {
+                "min": 2200,
+                "max": 2200
+              }
+            }
+          },
+          {
+            "effectiveFrom": "2026-11-10",
+            "values": {
+              "energyKcal": {
+                "min": 2400,
+                "max": 2400
+              }
+            }
+          }
+        ],
+        "day": "2026-11-05"
+      },
+      "expected": [
+        {
+          "nutrientKey": "energyKcal",
+          "unit": "kcal",
+          "min": 2200,
+          "max": 2200,
+          "upperLimit": null,
+          "sources": [
+            "efsa/energy"
+          ],
+          "overridden": true
+        },
+        {
+          "nutrientKey": "proteinG",
+          "unit": "g",
+          "min": 62,
+          "max": null,
+          "upperLimit": null,
+          "sources": [
+            "efsa/protein"
+          ],
+          "overridden": false
+        },
+        {
+          "nutrientKey": "zincMg",
+          "unit": "mg",
+          "min": 11.7,
+          "max": null,
+          "upperLimit": 25,
+          "sources": [
+            "efsa/zinc",
+            "efsa/zinc-ul"
+          ],
+          "overridden": false
+        }
+      ]
+    },
+    {
+      "id": "newer-override-from-its-day",
+      "why": "From 10 November the 2400 kcal override applies, while earlier days keep 2200.",
+      "input": {
+        "targets": [
+          {
+            "nutrientKey": "energyKcal",
+            "unit": "kcal",
+            "min": 2588,
+            "max": 2588,
+            "upperLimit": null,
+            "sources": [
+              "efsa/energy"
+            ]
+          },
+          {
+            "nutrientKey": "proteinG",
+            "unit": "g",
+            "min": 62,
+            "max": null,
+            "upperLimit": null,
+            "sources": [
+              "efsa/protein"
+            ]
+          },
+          {
+            "nutrientKey": "zincMg",
+            "unit": "mg",
+            "min": 11.7,
+            "max": null,
+            "upperLimit": 25,
+            "sources": [
+              "efsa/zinc",
+              "efsa/zinc-ul"
+            ]
+          }
+        ],
+        "versions": [
+          {
+            "effectiveFrom": "2026-11-01",
+            "values": {
+              "energyKcal": {
+                "min": 2200,
+                "max": 2200
+              }
+            }
+          },
+          {
+            "effectiveFrom": "2026-11-10",
+            "values": {
+              "energyKcal": {
+                "min": 2400,
+                "max": 2400
+              }
+            }
+          }
+        ],
+        "day": "2026-11-10"
+      },
+      "expected": [
+        {
+          "nutrientKey": "energyKcal",
+          "unit": "kcal",
+          "min": 2400,
+          "max": 2400,
+          "upperLimit": null,
+          "sources": [
+            "efsa/energy"
+          ],
+          "overridden": true
+        },
+        {
+          "nutrientKey": "proteinG",
+          "unit": "g",
+          "min": 62,
+          "max": null,
+          "upperLimit": null,
+          "sources": [
+            "efsa/protein"
+          ],
+          "overridden": false
+        },
+        {
+          "nutrientKey": "zincMg",
+          "unit": "mg",
+          "min": 11.7,
+          "max": null,
+          "upperLimit": 25,
+          "sources": [
+            "efsa/zinc",
+            "efsa/zinc-ul"
+          ],
+          "overridden": false
+        }
+      ]
+    },
+    {
+      "id": "empty-snapshot-resets",
+      "why": "Reset to computed is a new empty snapshot, so the reset applies from its day without erasing earlier overridden days.",
+      "input": {
+        "targets": [
+          {
+            "nutrientKey": "energyKcal",
+            "unit": "kcal",
+            "min": 2588,
+            "max": 2588,
+            "upperLimit": null,
+            "sources": [
+              "efsa/energy"
+            ]
+          },
+          {
+            "nutrientKey": "proteinG",
+            "unit": "g",
+            "min": 62,
+            "max": null,
+            "upperLimit": null,
+            "sources": [
+              "efsa/protein"
+            ]
+          },
+          {
+            "nutrientKey": "zincMg",
+            "unit": "mg",
+            "min": 11.7,
+            "max": null,
+            "upperLimit": 25,
+            "sources": [
+              "efsa/zinc",
+              "efsa/zinc-ul"
+            ]
+          }
+        ],
+        "versions": [
+          {
+            "effectiveFrom": "2026-11-01",
+            "values": {
+              "energyKcal": {
+                "min": 2200,
+                "max": 2200
+              }
+            }
+          },
+          {
+            "effectiveFrom": "2026-11-10",
+            "values": {
+              "energyKcal": {
+                "min": 2400,
+                "max": 2400
+              }
+            }
+          },
+          {
+            "effectiveFrom": "2026-11-15",
+            "values": {}
+          }
+        ],
+        "day": "2026-11-15"
+      },
+      "expected": [
+        {
+          "nutrientKey": "energyKcal",
+          "unit": "kcal",
+          "min": 2588,
+          "max": 2588,
+          "upperLimit": null,
+          "sources": [
+            "efsa/energy"
+          ],
+          "overridden": false
+        },
+        {
+          "nutrientKey": "proteinG",
+          "unit": "g",
+          "min": 62,
+          "max": null,
+          "upperLimit": null,
+          "sources": [
+            "efsa/protein"
+          ],
+          "overridden": false
+        },
+        {
+          "nutrientKey": "zincMg",
+          "unit": "mg",
+          "min": 11.7,
+          "max": null,
+          "upperLimit": 25,
+          "sources": [
+            "efsa/zinc",
+            "efsa/zinc-ul"
+          ],
+          "overridden": false
+        }
+      ]
+    }
+  ]
+}
