@@ -1,6 +1,6 @@
 # Pocket Nutrition — Vault Web
 
-A read-only web viewer for your [Pocket Nutrition](https://website.pocketnutrition.org) vault: it decrypts your
+A read-only web viewer for your [Pocket Nutrition](https://pocketnutrition.org) vault: it decrypts your
 journal in your browser, never on a server. The official page is
 [me.pocketnutrition.org](https://me.pocketnutrition.org).
 
@@ -106,8 +106,7 @@ reproduce.
 
 ## Documentation
 
-For how this viewer fits with the apps, the vault and the API, see the
-[architecture overview](https://website.pocketnutrition.org/docs/architecture/overview). The vault protocol (keys,
+The vault protocol (keys,
 records, threat model) is described in `docs/PROTOCOL.md` of the [vault](https://github.com/pocket-nutrition/vault)
 repository.
 
