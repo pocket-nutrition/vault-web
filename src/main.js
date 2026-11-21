@@ -5,10 +5,10 @@ import sodium from 'libsodium-wrappers-sumo';
 import { createCrypto, CryptoError, sameKdf } from './crypto.js';
 import { createTargetModel } from './dayTargets.js';
 import { h } from './dom.js';
-import { pickLanguage, strings } from './i18n.js';
-import { dayKey, groupByDay, readVault, toCsv } from './journal.js';
+import { LANGUAGES, pickLanguage, stringsFor } from './i18n.js';
+import { dayKey, groupByDay, groupBySlot, readVault, toCsv } from './journal.js';
 import { fetchReferenceTable, OFFICIAL_API } from './referenceIntakes.js';
-import { targetStrings } from './targetStrings.js';
+import { targetStringsFor } from './targetStrings.js';
 import { createTargetsView } from './targetsView.js';
 import { createVaultClient, OFFICIAL_VAULT, VaultApiError } from './vault.js';
 
@@ -21,12 +21,8 @@ const API_URL = typeof __API_URL__ === 'undefined' ? OFFICIAL_API : __API_URL__;
 // localStorage, no cookies, no URL. Closing the tab, logging out or a few idle minutes ends it.
 
 const IDLE_MS = 10 * 60 * 1000;
-const t = strings();
-const tt = targetStrings();
 const app = document.getElementById('app');
 const vault = createVaultClient({ baseUrl: VAULT_URL });
-document.documentElement.lang = pickLanguage(navigator.languages);
-document.title = t.title;
 
 /**
  * `targets` is null when the vault holds no daily-targets settings: the page then looks exactly as before
@@ -36,15 +32,72 @@ document.title = t.title;
  */
 let session = null;
 let idleTimer = null;
+/** Draws the current view again, for a language change; set by each view. */
+let redraw = () => {};
 
 function render(...nodes) {
   app.replaceChildren(...nodes);
 }
 
+// MARK: - Language
+
+// The browser's language first; the EN · FR switch changes it for this visit only (nothing is stored).
+let lang;
+let t;
+let tt;
+let dayFormatter;
+let shortDayFormatter;
+let timeFormatter;
+let numberFormatter;
+let targetsView;
+
+const round = (value) => Math.round(value * 10) / 10;
+const localDate = (day) => {
+  const [year, month, date] = day.split('-').map(Number);
+  return new Date(year, month - 1, date);
+};
+
+function setLanguage(next) {
+  lang = LANGUAGES.includes(next) ? next : 'en';
+  t = stringsFor(lang);
+  tt = targetStringsFor(lang);
+  dayFormatter = new Intl.DateTimeFormat(lang, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  shortDayFormatter = new Intl.DateTimeFormat(lang, { weekday: 'short', day: 'numeric', month: 'short' });
+  timeFormatter = new Intl.DateTimeFormat(lang, { hour: '2-digit', minute: '2-digit' });
+  numberFormatter = new Intl.NumberFormat(lang, { maximumFractionDigits: 1 });
+  targetsView = createTargetsView({
+    tt,
+    lang,
+    formatDay: (day) => shortDayFormatter.format(localDate(day)),
+    formatTime: (seconds) => timeFormatter.format(new Date(seconds * 1000)),
+    navigate,
+  });
+  document.documentElement.lang = lang;
+  document.title = t.title;
+  const siteName = document.getElementById('site-name');
+  if (siteName) siteName.textContent = t.siteName;
+  const switcher = document.getElementById('lang-switch');
+  if (switcher) {
+    switcher.setAttribute('aria-label', t.language);
+    for (const button of switcher.querySelectorAll('button[data-lang]')) {
+      button.setAttribute('aria-pressed', String(button.dataset.lang === lang));
+    }
+  }
+}
+
+setLanguage(pickLanguage(navigator.languages));
+for (const button of document.querySelectorAll('#lang-switch button[data-lang]')) {
+  button.addEventListener('click', () => {
+    if (button.dataset.lang === lang) return;
+    setLanguage(button.dataset.lang);
+    redraw();
+  });
+}
+
 // MARK: - Login
 
-function loginView(message = null, isError = true) {
-  const username = h('input', { id: 'username', autocomplete: 'username', autocapitalize: 'none', spellcheck: 'false', required: true });
+function loginView(message = null, isError = true, typed = '') {
+  const username = h('input', { id: 'username', autocomplete: 'username', autocapitalize: 'none', spellcheck: 'false', required: true, value: typed || null });
   const passphrase = h('input', { id: 'passphrase', type: 'password', autocomplete: 'current-password', required: true });
   const button = h('button', { type: 'submit' }, t.login);
   const status = h('p', { class: message && isError ? 'notice error' : 'notice', hidden: !message, role: 'alert' }, message);
@@ -77,7 +130,18 @@ function loginView(message = null, isError = true) {
     button,
     status);
 
-  render(h('h1', {}, t.title), h('p', { class: 'soft' }, t.intro), h('div', { class: 'card' }, form));
+  // A message was written in the old language: a redraw drops it, and keeps the username typed so far.
+  redraw = () => loginView(null, true, username.value);
+  render(
+    h('h1', {}, t.loginHeading),
+    h('p', { class: 'soft' }, t.intro),
+    h('div', { class: 'login' },
+      h('div', { class: 'card' }, form),
+      h('aside', { class: 'help' },
+        h('h2', {}, t.newcomerTitle),
+        h('p', {}, t.newcomer),
+        h('p', {}, h('a', { class: 'button quiet', href: 'https://pocketnutrition.org/#apps' }, t.getApp)),
+        h('p', {}, t.forgotten))));
   username.focus();
 }
 
@@ -174,12 +238,14 @@ function twoFactorView(pending, message = null) {
     status,
     h('div', { class: 'actions' }, toggle, cancel));
 
-  render(h('h1', {}, t.title), h('div', { class: 'card' }, form));
+  redraw = () => twoFactorView(pending);
+  render(h('h1', {}, t.loginHeading), h('div', { class: 'card' }, form));
   code.focus();
 }
 
 async function unlock({ crypto, kdf, credentials }, reply) {
-  render(h('h1', {}, t.title), h('p', { class: 'notice' }, t.loading));
+  redraw = () => render(h('h1', {}, t.loginHeading), h('p', { class: 'notice' }, t.loading));
+  redraw();
   try {
     const { userKey, kdf: stored } = crypto.unwrapUserKey(reply.keyring.blob, credentials.wrapKey);
     // The keys came from the settings announced at prelogin: a keyring that claims others is the server
@@ -261,11 +327,12 @@ function navigate(change) {
 
 function journalView() {
   if (!session) return loginView();
+  redraw = journalView;
   const { journal, tab, targets } = session;
   const tabButton = (id, label) =>
     h('button', { 'aria-current': tab === id ? 'page' : false, onclick: () => navigate({ view: 'tab', tab: id }) }, label);
   const header = h('header', { class: 'bar' },
-    h('h1', {}, t.title),
+    h('h1', {}, t.journalHeading),
     h('div', { class: 'actions' },
       h('button', { class: 'quiet', onclick: () => download(toCsv(journal.meals)) }, t.export),
       h('button', { class: 'quiet', onclick: () => logout() }, t.logout)));
@@ -280,7 +347,7 @@ function journalView() {
   else content = mealsSection(journal.meals);
   render(
     header,
-    h('p', { class: 'soft' }, t.readOnly),
+    h('p', { class: 'soft' }, t.readOnly, ' ', t.webDevice),
     h('nav', { class: 'tabs' },
       tabButton('journal', `${t.journal} (${journal.meals.length})`),
       tabButton('dictations', `${t.dictations} (${journal.dictations.length})`),
@@ -288,40 +355,33 @@ function journalView() {
     content);
 }
 
-const dayFormatter = new Intl.DateTimeFormat(document.documentElement.lang, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-const shortDayFormatter = new Intl.DateTimeFormat(document.documentElement.lang, { weekday: 'short', day: 'numeric', month: 'short' });
-const timeFormatter = new Intl.DateTimeFormat(document.documentElement.lang, { hour: '2-digit', minute: '2-digit' });
-const round = (value) => Math.round(value * 10) / 10;
-const localDate = (day) => {
-  const [year, month, date] = day.split('-').map(Number);
-  return new Date(year, month - 1, date);
-};
-
-const targetsView = createTargetsView({
-  tt,
-  lang: document.documentElement.lang,
-  formatDay: (day) => shortDayFormatter.format(localDate(day)),
-  formatTime: (seconds) => timeFormatter.format(new Date(seconds * 1000)),
-  navigate,
-});
-
-function macros(totals) {
-  return `${Math.round(totals.kcal)} ${t.kcal} · ${round(totals.protein)} g ${t.protein} · ${round(totals.carbs)} g ${t.carbs} · ${round(totals.fat)} g ${t.fat}`;
+/** A meal as the apps list it: its foods on one line, then the energy and the three macros. */
+function mealRow(meal) {
+  const grams = (value) => `${numberFormatter.format(round(value))} g`;
+  const macro = (abbr, value) => h('span', { class: 'macro' }, `${abbr} ${grams(value)}`);
+  return h('li', { class: 'meal' },
+    h('div', { class: 'meal-head' },
+      h('p', { class: 'meal-foods' }, meal.items.flatMap((item, i) => [
+        i ? ' · ' : null, item.label, ' ', h('span', { class: 'grams' }, grams(item.grams))])),
+      h('span', { class: 'meal-time' }, timeFormatter.format(new Date(meal.savedAt * 1000)))),
+    h('p', { class: 'meal-totals' },
+      h('span', { class: 'kcal' }, `${Math.round(meal.totals.kcal)} ${t.kcal}`),
+      macro(t.proteinAbbr, meal.totals.protein), macro(t.carbsAbbr, meal.totals.carbs), macro(t.fatAbbr, meal.totals.fat)));
 }
 
+/** Each day is one card, like a section of the apps' journal: its rings, then its meals by slot. */
 function mealsSection(meals) {
   if (!meals.length) return h('p', { class: 'notice' }, t.emptyJournal);
   const targets = session.targets;
-  return h('section', {}, groupByDay(meals).map((day) => {
-    return h('div', {},
-      h('h2', {}, h('span', { class: 'day-title' }, dayFormatter.format(localDate(day.day))), ' ', h('span', { class: 'day-total' }, `· ${t.meals(day.meals.length)} · ${Math.round(day.totals.kcal)} ${t.kcal}`)),
+  return h('section', { class: 'days' }, groupByDay(meals).map((day) => h('section', { class: 'day' },
+    h('h2', { class: 'day-head' },
+      h('span', { class: 'day-title' }, dayFormatter.format(localDate(day.day))),
+      h('span', { class: 'day-total' }, `${t.meals(day.meals.length)} · ${Math.round(day.totals.kcal)} ${t.kcal}`)),
+    h('div', { class: 'card day-card' },
       targets ? targetsView.dayRings(targets.model, day.day, targets.settings.watchList.keys) : null,
-      day.meals.map((meal) => h('article', { class: 'card' },
-        h('div', { class: 'meal-time' }, timeFormatter.format(new Date(meal.savedAt * 1000))),
-        h('ul', { class: 'items' }, meal.items.map((item) =>
-          h('li', {}, h('span', {}, item.label), h('span', { class: 'grams' }, `${round(item.grams)} g`)))),
-        h('p', { class: 'macros' }, macros(meal.totals)))));
-  }));
+      groupBySlot(day.meals).flatMap((group) => [
+        h('h3', { class: 'slot' }, t.slots[group.slot]),
+        h('ul', { class: 'meals' }, group.meals.map(mealRow))])))));
 }
 
 function dictationsSection(dictations) {

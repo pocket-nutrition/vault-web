@@ -20,7 +20,7 @@ function parseJson(plaintext) {
 
 const isNumber = (value) => typeof value === 'number' && Number.isFinite(value);
 
-/** Meal record versions this viewer reads. v2 adds an optional `slot` (ignored here) and `nutrients`. */
+/** Meal record versions this viewer reads. v2 adds an optional `slot` and `nutrients`. */
 const READABLE_MEAL_VERSIONS = [1, 2];
 
 const TOTALS_KEYS = { energy_kcal: 'energyKcal', protein_g: 'proteinG', carbohydrates_g: 'carbohydratesG', fat_g: 'fatG' };
@@ -50,6 +50,7 @@ export function parseMeal(plaintext, expectedId) {
   const totals = meal.totals ?? {};
   return {
     id: meal.id,
+    slot: MEAL_SLOTS.includes(meal.slot) ? meal.slot : null,
     savedAt: meal.saved_at,
     updatedAt: meal.updated_at,
     totals: {
@@ -113,6 +114,35 @@ export function dayKey(seconds) {
   const date = new Date(seconds * 1000);
   const pad = (n) => String(n).padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+/** Meal slots in the order the apps list them within a day. */
+export const MEAL_SLOTS = ['breakfast', 'lunch', 'snack', 'dinner'];
+
+/**
+ * The slot of a local time in minutes since midnight, as the apps file a meal that has no slot of its own.
+ * Half-open bands: breakfast [04:00, 10:30), lunch [10:30, 15:00), dinner [17:30, 22:30), snack otherwise.
+ */
+export function slotForMinutes(minutes) {
+  const m = ((Math.floor(minutes) % 1440) + 1440) % 1440;
+  if (m >= 240 && m < 630) return 'breakfast';
+  if (m >= 630 && m < 900) return 'lunch';
+  if (m >= 1050 && m < 1350) return 'dinner';
+  return 'snack';
+}
+
+/** A meal's slot: the one saved with it, else the one of its local time. */
+export function effectiveSlot(meal) {
+  if (meal.slot) return meal.slot;
+  const date = new Date(meal.savedAt * 1000);
+  return slotForMinutes(date.getHours() * 60 + date.getMinutes());
+}
+
+/** One day's meals by slot, in slot order, oldest meal first within a slot; empty slots left out. */
+export function groupBySlot(meals) {
+  return MEAL_SLOTS
+    .map((slot) => ({ slot, meals: meals.filter((meal) => effectiveSlot(meal) === slot).sort((a, b) => a.savedAt - b.savedAt) }))
+    .filter((group) => group.meals.length > 0);
 }
 
 /** Newest day first, newest meal first within a day, with each day's totals. */

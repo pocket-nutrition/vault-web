@@ -3,6 +3,15 @@
 const STRINGS = {
   en: {
     title: 'My Pocket Nutrition',
+    siteName: 'My journal',
+    language: 'Language',
+    loginHeading: 'Open your journal',
+    journalHeading: 'Your journal',
+    newcomerTitle: 'No account yet?',
+    newcomer: 'Accounts are created in the Pocket Nutrition app, under Cloud vault: there is no sign-up on this page. Once your phone has synced, log in here with the same username and passphrase.',
+    getApp: 'Get the app',
+    forgotten: 'Forgot your passphrase? Nobody can recover it for you. Use your emergency kit, or set a new one from a phone that is still logged in.',
+    webDevice: 'While you read, this browser is listed as “Web browser” in your devices in the app. Log out when you are done: that unlinks it.',
     intro: 'Read your journal from this browser. It is decrypted here, on this page: your passphrase never leaves it.',
     username: 'Username',
     passphrase: 'Passphrase',
@@ -34,9 +43,21 @@ const STRINGS = {
     readOnly: 'Read only. To change your journal, use the app.',
     idle: 'Logged out after a few minutes of inactivity.',
     kcal: 'kcal', protein: 'protein', carbs: 'carbs', fat: 'fat',
+    // contract: nutrients.proteinAbbr / carbsAbbr / fatAbbr, and the apps' meal slot names.
+    proteinAbbr: 'P', carbsAbbr: 'C', fatAbbr: 'F',
+    slots: { breakfast: 'Breakfast', lunch: 'Lunch', snack: 'Snack', dinner: 'Dinner' },
   },
   fr: {
     title: 'Mon Pocket Nutrition',
+    siteName: 'Mon journal',
+    language: 'Langue',
+    loginHeading: 'Ouvrir votre journal',
+    journalHeading: 'Votre journal',
+    newcomerTitle: 'Pas encore de compte ?',
+    newcomer: 'Les comptes se créent dans l’application Pocket Nutrition, rubrique Coffre-fort : cette page ne permet pas de s’inscrire. Une fois votre téléphone synchronisé, connectez-vous ici avec le même identifiant et la même phrase secrète.',
+    getApp: 'Installer l’application',
+    forgotten: 'Phrase secrète oubliée ? Personne ne peut la retrouver pour vous. Utilisez votre kit de secours, ou choisissez-en une nouvelle depuis un téléphone encore connecté.',
+    webDevice: 'Pendant la lecture, ce navigateur figure comme « Web browser » dans vos appareils, dans l’application. Déconnectez-vous en partant : cela le dissocie de votre compte.',
     intro: 'Lisez votre journal depuis ce navigateur. Il est déchiffré ici, dans cette page : votre phrase secrète ne la quitte jamais.',
     username: 'Identifiant',
     passphrase: 'Phrase secrète',
@@ -68,6 +89,8 @@ const STRINGS = {
     readOnly: 'Lecture seule. Pour modifier votre journal, utilisez l’application.',
     idle: 'Déconnecté après quelques minutes d’inactivité.',
     kcal: 'kcal', protein: 'protéines', carbs: 'glucides', fat: 'lipides',
+    proteinAbbr: 'P', carbsAbbr: 'G', fatAbbr: 'L',
+    slots: { breakfast: 'Petit-déjeuner', lunch: 'Déjeuner', snack: 'En-cas', dinner: 'Dîner' },
   },
 };
 
@@ -78,3 +101,14 @@ export function pickLanguage(languages) {
 export function strings(languages = globalThis.navigator?.languages) {
   return STRINGS[pickLanguage(languages)];
 }
+
+/** The languages the switch offers, in its order. */
+export const LANGUAGES = ['en', 'fr'];
+
+/** Strings for a language picked on the page; anything unknown falls back to English. */
+export function stringsFor(lang) {
+  return STRINGS[lang] ?? STRINGS.en;
+}
+
+/** For tests: both languages must name the same things. */
+export const STRING_TABLES = STRINGS;
