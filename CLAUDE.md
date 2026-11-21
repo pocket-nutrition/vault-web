@@ -86,6 +86,5 @@ or API (served by the image, the CSP still blocks any other host):
 
 ## Docs and contributing
 
-[Architecture overview](https://website.pocketnutrition.org/docs/architecture/overview) ·
 [CONTRIBUTING.md](CONTRIBUTING.md) for the PR workflow and CI · vulnerabilities are reported privately, see
 [SECURITY.md](SECURITY.md).

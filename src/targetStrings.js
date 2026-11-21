@@ -172,5 +172,10 @@ export function targetStrings(languages = globalThis.navigator?.languages) {
   return STRINGS[pickLanguage(languages)];
 }
 
+/** Target strings for a language picked on the page; anything unknown falls back to English. */
+export function targetStringsFor(lang) {
+  return STRINGS[lang] ?? STRINGS.en;
+}
+
 /** For tests: both languages must name the same things. */
 export const TARGET_STRING_TABLES = STRINGS;

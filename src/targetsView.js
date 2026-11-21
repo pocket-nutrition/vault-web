@@ -50,23 +50,37 @@ export function createTargetsView({ tt, lang, formatDay, formatTime, navigate })
       value > 100 ? lap('ring-over', Math.min(value - 100, 100)) : null);
   }
 
+  /**
+   * One ring cell as the apps draw it: the percentage inside the ring, the nutrient and the day's total
+   * under it. A nutrient with no target gets no ring, only its total against the person's usual.
+   */
   function ringItem(model, day, progress, target) {
     const partial = progress.totalMeals > 0 && progress.knownMeals < progress.totalMeals;
     const key = progress.nutrientKey;
+    const total = amount(key, progress.unit, progress.total);
     if (progress.status === 'no-target') {
       const usual = model.comparison(day, key).average;
-      const text = [`${name(key)} ${amount(key, progress.unit, progress.total)}`];
+      const text = [`${name(key)} ${total}`];
       if (usual !== null) text.push(tt.usual(amount(key, progress.unit, usual)));
-      return h('span', { class: 'chip' }, text.join(' · '));
+      return h('span', { class: 'usual' }, text.join(' · '));
     }
-    const title = [`${name(key)}: ${amount(key, progress.unit, progress.total)} / ${targetText(target)}`];
-    if (partial) title.push(tt.coverage(progress.knownMeals, progress.totalMeals));
-    return h('span', { class: 'ring-item', title: title.join(' · ') },
-      ring(progress.percent, partial),
+    const percent = progress.percent === null || progress.percent === undefined ? '–' : String(progress.percent);
+    const label = [`${name(key)}: ${total} / ${targetText(target)}`, `${percent} %`];
+    if (partial) label.push(tt.coverage(progress.knownMeals, progress.totalMeals));
+    return h('span', { class: 'ring-item', title: label.join(' · ') },
+      h('span', { class: 'ring-dial', 'aria-hidden': 'true' }, ring(progress.percent, partial), h('span', { class: 'ring-percent' }, percent)),
       h('span', { class: 'ring-label' }, name(key)),
-      h('span', { class: 'ring-value' }, `${progress.percent ?? 0} %`),
+      h('span', { class: 'ring-value' }, total),
       isLimit(target) ? h('span', { class: 'limit-marker' }, tt.limit) : null,
-      partial ? h('span', { class: 'coverage' }, tt.coverage(progress.knownMeals, progress.totalMeals)) : null);
+      h('span', { class: 'visually-hidden' }, label.slice(1).join(' · ')));
+  }
+
+  /** Rings first, then the nutrients without a target as plain lines, as on the phone. */
+  function ringCells(model, day, keys, byKey) {
+    const cells = model.progress(day, keys).map((p) => ringItem(model, day, p, byKey.get(p.nutrientKey)));
+    const rings = cells.filter((cell) => cell.className === 'ring-item');
+    const plain = cells.filter((cell) => cell.className !== 'ring-item');
+    return [rings.length ? h('span', { class: 'ring-grid' }, rings) : null, ...plain];
   }
 
   /** The watch-list rings of a day, or null when no target applies (the header then shows totals only). */
@@ -74,7 +88,7 @@ export function createTargetsView({ tt, lang, formatDay, formatTime, navigate })
     const targets = model.targetsFor(day);
     if (targets.status !== 'ok' || keys.length === 0) return null;
     const byKey = new Map(targets.targets.map((target) => [target.nutrientKey, target]));
-    const items = model.progress(day, keys).map((p) => ringItem(model, day, p, byKey.get(p.nutrientKey)));
+    const items = ringCells(model, day, keys, byKey);
     return interactive
       ? h('button', { class: 'rings', 'aria-label': tt.openDay, onclick: () => navigate({ view: 'day', day }) }, items)
       : h('div', { class: 'rings' }, items);

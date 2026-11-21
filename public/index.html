@@ -10,8 +10,82 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- Shared header, same markup as pocket-nutrition-website (src/components/site-nav) and
+       pocket-nutrition-community (app/templates/base.html): the group bar is identical on every
+       Pocket Nutrition site, in English. Change all three together. Leaving the page ends the session. -->
+  <nav class="group-bar" aria-label="Pocket Nutrition sites">
+    <div class="group-bar-inner">
+      <ul class="group-bar-sites">
+        <li><a class="group-bar-link" href="https://pocketnutrition.org/">Website</a></li>
+        <li><a class="group-bar-link" href="https://community.pocketnutrition.org/ui/ingredients">Food Dataset</a></li>
+        <li><a class="group-bar-link" href="https://pocketnutrition.org/docs">Docs</a></li>
+        <li><a class="group-bar-link" href="/" aria-current="true">My journal</a></li>
+        <li><a class="group-bar-link" href="https://api.pocketnutrition.org/swagger-ui/index.html">API<svg class="group-bar-external" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a></li>
+      </ul>
+      <a class="group-bar-link" href="https://github.com/pocket-nutrition/pocket-nutrition"><svg class="group-bar-star" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>Star on GitHub<svg class="group-bar-external" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
+    </div>
+  </nav>
+  <header class="site-nav">
+    <div class="site-nav-inner">
+      <!-- Not a link: reloading would end the session. -->
+      <span class="pn-wordmark">pocket<span class="pn-wordmark-mark">·</span>nutrition<span class="pn-wordmark-suffix" id="site-name">My journal</span></span>
+      <!-- The language lives in this page's memory only (no URL, no storage), hence buttons; app.js wires them. -->
+      <div class="lang-switch" role="group" aria-label="Language" id="lang-switch">
+        <button type="button" lang="en" data-lang="en">EN</button>
+        <span aria-hidden="true">·</span>
+        <button type="button" lang="fr" data-lang="fr">FR</button>
+      </div>
+    </div>
+  </header>
   <main id="app" aria-live="polite"></main>
   <noscript><p class="notice">This page needs JavaScript: your vault is decrypted in your browser.</p></noscript>
+  <!-- Shared footer, same markup as pocket-nutrition-website (src/components/site-footer). -->
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <div class="site-footer-grid">
+        <div>
+          <a class="pn-wordmark" href="https://pocketnutrition.org/" aria-label="Pocket Nutrition">pocket<span class="pn-wordmark-mark">·</span>nutrition</a>
+          <p class="site-footer-tagline">Open, verifiable nutrition intelligence. Built by a community, owned by everyone.</p>
+          <p class="site-footer-sources">Reference data: <a href="https://ciqual.anses.fr">Ciqual (ANSES)</a>, <a href="https://world.openfoodfacts.org">Open Food Facts</a> and <a href="https://fdc.nal.usda.gov">USDA FoodData Central</a>.</p>
+        </div>
+        <div>
+          <p class="site-footer-heading">Website</p>
+          <ul class="site-footer-links">
+            <li><a href="https://pocketnutrition.org/#apps">Get the app</a></li>
+            <li><a href="/">My journal</a></li>
+            <li><a href="https://pocketnutrition.org/calculator">Calculator</a></li>
+            <li><a href="https://pocketnutrition.org/examples">Examples</a></li>
+            <li><a href="https://pocketnutrition.org/privacy">Privacy policy</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="site-footer-heading">Food Dataset</p>
+          <ul class="site-footer-links">
+            <li><a href="https://community.pocketnutrition.org/ui/ingredients">Ingredients</a></li>
+            <li><a href="https://community.pocketnutrition.org/ui/about">About the dataset</a></li>
+            <li><a href="https://community.pocketnutrition.org/ui/stats">Statistics</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="site-footer-heading">Docs</p>
+          <ul class="site-footer-links">
+            <li><a href="https://pocketnutrition.org/docs/self-hosting/overview">Self-hosting</a></li>
+            <li><a href="https://pocketnutrition.org/docs/contribute/knowledge-editor">Knowledge Editor</a></li>
+            <li><a href="https://github.com/pocket-nutrition/vault-web">Source of this page</a></li>
+            <li><a href="https://api.pocketnutrition.org/swagger-ui/index.html">API reference</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="site-footer-bottom">
+        <span>© 2026 Pocket Nutrition contributors · AGPL-3.0-or-later &amp; MPL-2.0</span>
+        <span class="site-footer-bottom-links">
+          <a href="https://status.pocketnutrition.org">Service status</a>
+          <a href="https://github.com/pocket-nutrition">Source code on GitHub</a>
+        </span>
+      </div>
+      <p class="site-footer-love">Made with <span class="site-footer-heart" role="img" aria-label="love">♥</span> from France</p>
+    </div>
+  </footer>
   <script src="app.js" defer></script>
 </body>
 </html>

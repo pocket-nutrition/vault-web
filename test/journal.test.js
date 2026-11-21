@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { csvCell, groupByDay, parseDictation, parseMeal, readVault, toCsv } from '../src/journal.js';
+import { csvCell, groupByDay, groupBySlot, parseDictation, parseMeal, readVault, slotForMinutes, toCsv } from '../src/journal.js';
 
 const bytes = (value) => new TextEncoder().encode(typeof value === 'string' ? value : JSON.stringify(value));
 
@@ -64,6 +64,40 @@ test('meals are grouped by day, newest first, with daily totals', () => {
   assert.deepEqual(grouped[0].meals.map((meal) => meal.id), ['later', '0']);
   assert.equal(grouped[0].totals.kcal, 250);
   assert.equal(grouped[1].totals.kcal, 100);
+});
+
+test('a meal without a slot is filed by its local time, like the apps', () => {
+  const at = (h, m) => slotForMinutes(h * 60 + m);
+  assert.equal(at(3, 59), 'snack');
+  assert.equal(at(4, 0), 'breakfast');
+  assert.equal(at(10, 29), 'breakfast');
+  assert.equal(at(10, 30), 'lunch');
+  assert.equal(at(15, 0), 'snack');
+  assert.equal(at(17, 30), 'dinner');
+  assert.equal(at(22, 30), 'snack');
+});
+
+test('a day is grouped by slot in app order, saved slot first, oldest meal first', () => {
+  const local = (h, m) => new Date(2026, 10, 16, h, m).getTime() / 1000;
+  const meal = (id, savedAt, slot = null) => ({ id, savedAt, slot });
+  const groups = groupBySlot([
+    meal('dinner', local(19, 45)),
+    meal('late-lunch', local(13, 0)),
+    meal('lunch', local(12, 0)),
+    meal('filed-as-breakfast', local(11, 0), 'breakfast'),
+  ]);
+  assert.deepEqual(groups.map((g) => [g.slot, g.meals.map((m) => m.id)]), [
+    ['breakfast', ['filed-as-breakfast']],
+    ['lunch', ['lunch', 'late-lunch']],
+    ['dinner', ['dinner']],
+  ]);
+});
+
+test('parseMeal keeps a known slot and drops anything else', () => {
+  const withSlot = (slot) => parseMeal(bytes(mealJson({ v: 2, slot })), 'a1').slot;
+  assert.equal(withSlot('lunch'), 'lunch');
+  assert.equal(withSlot('brunch'), null);
+  assert.equal(withSlot(undefined), null);
 });
 
 test('CSV cells are quoted when needed and cannot run as spreadsheet formulas', () => {
